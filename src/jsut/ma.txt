@@ -1,0 +1,4 @@
+./tests2/test_sprintf_c.c:161:F:sprintf_tc:sprintf_13_c:0: 
+Assertion '__builtin___sprintf_chk (str1, 0, __builtin_object_size (str1, 2 > 1 ? 1 : 0), str3, 'b', '4', '#', '@', '\0') == 
+s21_sprintf(str2, str3, 'b', '4', '#', '@', '\0')' failed: __builtin___sprintf_chk (str1, 0, __builtin_object_size (str1, 2 > 1 ? 1 : 0), str3, 'b', '4', '#', '@', '\0') == 29,
+s21_sprintf(str2, str3, 'b', '4', '#', '@', '\0') == 28
