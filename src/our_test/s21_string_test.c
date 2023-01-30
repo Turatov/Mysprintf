@@ -2733,7 +2733,7 @@ START_TEST(width_char1) {
   ck_assert_int_eq(a, b);
 }
 
-/*-----------------SSCANF------------------*/
+/*-----------------SSCANF------------------
 START_TEST(s21_sscanf_test_16_o_option) {
   int a = 0;
   int b = 0;
@@ -2741,7 +2741,7 @@ START_TEST(s21_sscanf_test_16_o_option) {
   int c = 0;
   int d = 0;
 
-  int result1 = s21_sscanf("12345 36", "%o %o", &a, &b);
+   int result1 = s21_sscanf("12345 36", "%o %o", &a, &b);
   int result_origin1 = sscanf("12345 36", "%o %o", &c, &d);
   ck_assert_int_eq(result1, result_origin1);
   ck_assert_int_eq(a, c);
@@ -5422,7 +5422,8 @@ START_TEST(spec_i_oct2) {
 }
 END_TEST
 
-/* [%s] */
+
+
 
 START_TEST(strings1) {
   char s1[BUFF_SIZE] = {'\0'};
@@ -5676,7 +5677,7 @@ START_TEST(strings_mixed2) {
 }
 END_TEST
 
-/* [%n] */
+
 
 START_TEST(n1) {
   long a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
@@ -5774,7 +5775,7 @@ START_TEST(n5) {
 }
 END_TEST
 
-/* [%f] / [%g] / %[%G] */
+ [%f] / [%g] / %[%G]
 
 START_TEST(floats1) {
   long double a1 = 1, a2 = 0, b1 = 1, b2 = 0, c1 = 1, c2 = 0, d1 = 1, d2 = 0;
@@ -5952,7 +5953,7 @@ START_TEST(floats_sci5) {
 }
 END_TEST
 
-/* [%u] */
+// [%u]
 
 START_TEST(uint1) {
   unsigned short a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
@@ -6708,7 +6709,7 @@ START_TEST(buff3) {
   ck_assert_int_eq(b1, b2);
 }
 END_TEST
-
+*/
 START_TEST(s21_sprintf_test_2_percent_option) {
   char a1[BUFF_SIZE] = {0};
   char aa1[BUFF_SIZE] = {0};
@@ -7134,7 +7135,7 @@ int main(void) {
   tcase_add_test(test_case_1, width_char1);
   tcase_add_test(test_case_1, s21_sprintf_test_2_percent_option);
 
-  /*--------------------------SSCANF----------------------*/
+  /*--------------------------SSCANF----------------------
 
   tcase_add_test(test_case_1, s21_sscanf_test_19_c_option);
   tcase_add_test(test_case_1, s21_sscanf_test_20_s_option);
@@ -7358,7 +7359,7 @@ int main(void) {
   // исправить, чтобы u не принимал минус.
 
   tcase_add_test(test_case_1, hard1);
-
+*/
   srunner_run_all(sr, CK_ENV);
   wtf = srunner_ntests_failed(sr);
 

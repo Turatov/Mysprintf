@@ -1,4 +1,3 @@
-
 #include "s21_string.h"
 
 int left_side(const char *src, const char *trim_chars, int last) {
@@ -23,7 +22,7 @@ int right_side(const char *src, const char *trim_chars, int last) {
 void *s21_trim(const char *src, const char *trim_chars) {
   char *arr = s21_NULL;
   if (src) {
-    if (trim_chars && trim_chars[0]) {
+    if (trim_chars != s21_NULL) {
       arr = calloc(s21_strlen(src) + 1, sizeof(char));
       s21_size_t begin = 0, last = s21_strlen(src);
       while (left_side(src, trim_chars, begin)) {

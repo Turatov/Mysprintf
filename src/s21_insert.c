@@ -1,6 +1,8 @@
 #include "s21_string.h"
 
 void *s21_insert(const char *src, const char *str, s21_size_t start_index) {
+  // char *ss = malloc(sizeof(char) * 100);
+  // printf("%s", ss);
   int err = 0;
   char *array = s21_NULL;
   if (src && str && start_index <= (s21_strlen(src))) {
