@@ -36,16 +36,7 @@ char *s21_itoa(long long value, char *str, int radix) {
     *(buffer - i) = temp;
   }
   return str;
-}  // конец s21_itoa
-
-// преобразование строки в целое число; возвращается ноль,
-// eсли в начале строки стоит символ, не являющейся цифрой
-// int s21_atoi(char *str) {
-//   int sum = 0;
-//   s21_size_t n = s21_strspn(str, "1234567890");  // количество цифр в числе
-//   for (s21_size_t i = 0; i < n; i++) sum += (str[n - i - 1] - 48) * pow(10,
-//   i); return sum;
-// }  // конец s21_atoi
+}
 
 char *s21_ftoa(long double value, char *str, s21_size_t accuracy, int f) {
   char *p;  // указатель на начало дробной части
@@ -270,16 +261,13 @@ char *s21_check_specifier(char *str, s21_size_t *str_len, va_list *input,
         break;
       case 'e':
       case 'E':
-        // s21_spec_eE(tmp_str, input, parameters);
         flt_to_str(input, tmp_str, parameters);
         break;
       case 'f':
-        // s21_spec_f(tmp_str, input, parameters);
         flt_to_str(input, tmp_str, parameters);
         break;
       case 'g':
       case 'G':
-        // s21_spec_gG(tmp_str, input, parameters);
         flt_to_str(input, tmp_str, parameters);
         break;
       case 'n':
@@ -435,173 +423,6 @@ void s21_hl_to_str(char *str, unsigned long long number,
   s21_reverse_writing(str);
 }
 
-// void s21_float_to_str(char *str, long double number, s21_FORMAT *parameters)
-// {
-//   parameters->sign = number < 0 ? -1 : 1;
-//   number *= parameters->sign;
-//   int local_sign = parameters->sign;
-//   if (parameters->precision <= 0) {
-//     s21_int_to_str(parameters, str, roundl(number));
-//   } else {
-//     long double left = 0, right = 0;  // long double
-//     int pos = 0;
-//     char result[256] = {0};
-//     right = modfl(number, &left);  // modfl
-//     if ((parameters->length == 'L') && (left == 9999.000000) &&
-//         parameters->precision <= 4) {
-//       number = roundl(number);
-//       right = modfl(number, &left);
-//     }
-
-//     if (s21_strchr("gG", parameters->specifier) && parameters->precision == 1
-//     &&
-//         right >= 0.5) {
-//       left++;
-//     }
-//     s21_int_to_str(parameters, str, roundl(left));
-//     s21_strcat(str, ".");
-//     int local_precision = parameters->precision;
-//     if (s21_strchr("gG", parameters->specifier)) {
-//       if (left >= 1) {
-//         local_precision = parameters->precision - (int)s21_strlen(str) + 1 +
-//                           ((int)roundl(number) == 0);
-//       } else if (right * pow(10, local_precision) < 1) {
-//         local_precision = 4;
-//       }
-//     }
-//     for (int i = 0; i < local_precision; i++) right *= 10;
-//     s21_int_to_str(parameters, result, roundl(right));
-//     pos = (int)s21_strlen(result);
-//     for (int i = 0; pos < local_precision; i++, pos++) {
-//       s21_move_string(result);
-//       result[i] = '0';
-//     }
-//     if (s21_strchr("gG", parameters->specifier) && (int)roundl(number) != 0)
-//     {
-//       result[parameters->precision - (int)s21_strlen(str) + 1] = '\0';
-//     }
-//     s21_strcat(str, result);
-//   }
-//   parameters->sign = local_sign;
-// }
-
-// void s21_gG_to_str(char *str, long double number, s21_FORMAT *parameters) {
-//   parameters->sign = number < 0 ? -1 : 1;
-//   number *= parameters->sign;
-//   int local_sign = parameters->sign;
-
-//   if ((number / pow(10, parameters->precision)) > 1 ||
-//       ((number * (pow(10, 4))) < 1 && (number * (pow(10, 21))) >= 1)) {
-//     if (number < 1 && parameters->precision <= 0) {
-//       parameters->precision = 4;
-//     } else {
-//       --parameters->precision;
-//     }
-//     s21_eE_to_str(str, number, parameters);
-//   } else {
-//     parameters->precision > 0 ? 1 : ++parameters->precision;
-//     s21_float_to_str(str, number, parameters);
-//     s21_delete_zero(parameters, str);
-//   }
-//   parameters->sign = local_sign;
-// }
-
-// void s21_delete_zero(s21_FORMAT *parameters, char *str) {
-//   int pos = (int)s21_strlen(str) - 1;
-//   if (pos > 0) {
-//     while (str[pos] == '0') {
-//       if (!parameters->flag_sharp ||
-//           (parameters->flag_sharp && pos > parameters->precision)) {
-//         str[pos] = '\0';
-//         pos -= 1;
-//       }
-//     }
-//     if (!parameters->flag_sharp && str[pos] == '.') {
-//       str[pos] = '\0';
-//     }
-//   }
-// }
-
-// void s21_eE_to_str(char *str, long double number, s21_FORMAT *parameters) {
-//   parameters->sign = number < 0 ? -1 : 1;
-//   int notation = 0, local_sign = parameters->sign;
-//   number *= parameters->sign;
-//   if (number < 1) {
-//     while (number < 1 && notation-- > -42) {
-//       number *= 10;
-//     }
-//     number < 1 ? (notation = number = 0) : 1;
-
-//     if (s21_compare_round(parameters, number)) {
-//       if (parameters->precision >= 0) {
-//         --parameters->precision;
-//       }
-//       notation++;
-//     }
-//     if (s21_strchr("gG", parameters->specifier))
-//       s21_delete_zero(parameters, str);
-//     s21_make_mantissa(parameters, &str[s21_strlen(str)], notation);
-//   } else {
-//     while (number >= 10) {
-//       notation++;
-//       number /= 10;
-//     }
-//     if (s21_compare_round(parameters, number)) {
-//       if (parameters->precision >= 0) {
-//         --parameters->precision;
-//       }
-//       notation++;
-//     }
-//   }
-
-//   if (parameters->precision == -1) parameters->precision = 0;  /////
-//   number = roundl(number *
-//                   pow(10, parameters->precision));  /// parameters->precision
-//   s21_int_to_str(parameters, str, number);
-//   if (parameters->precision > 0) {
-//     s21_move_string(&str[1]);
-//     str[1] = '.';
-//     for (int i = (int)s21_strlen(str); i < 2 + parameters->precision; i++) {
-//       str[i] = '0';
-//     }
-//   }
-//   if (s21_strchr("gG", parameters->specifier)) s21_delete_zero(parameters,
-//   str); s21_make_mantissa(parameters, &str[s21_strlen(str)], notation);
-//   parameters->sign = local_sign;
-// }
-
-// Если округляется до следующего разряда, необходимо увеличить степень
-// и поделить число на 10
-// В этом случае возвращаем True
-// int s21_compare_round(s21_FORMAT *parameters, long double number) {
-//   char compare_str[128] = {'\0'};
-//   int length = 0, result = 0;
-//   number *= pow(10, parameters->precision);
-//   s21_int_to_str(parameters, compare_str, number);
-//   length = s21_strlen(compare_str);
-//   number = roundl(number);
-//   s21_int_to_str(parameters, compare_str, number);
-//   if (length < (int)s21_strlen(compare_str)) {
-//     result = 1;
-//   }
-//   return result;
-// }
-
-// void s21_make_mantissa(s21_FORMAT *parameters, char *mantice, int notation) {
-//   int start_pos = 0;
-//   if (parameters->flag_sharp && parameters->precision <= 0) {
-//     mantice[start_pos++] = '.';
-//   }
-//   mantice[start_pos++] = s21_strchr("eg", parameters->specifier) ? 'e' : 'E';
-//   mantice[start_pos++] = (notation >= 0) ? '+' : '-';
-//   if (abs(notation) < 10) {
-//     mantice[start_pos++] = '0';
-//     s21_int_to_str(parameters, &mantice[start_pos], abs(notation));
-//   } else {
-//     s21_int_to_str(parameters, &mantice[start_pos], abs(notation));
-//   }
-// }
-
 void s21_wch_to_str(char *str, wchar_t *wstr, s21_size_t length) {
   s21_size_t str_len = s21_strlen(str);
   int cnt = length;
@@ -698,11 +519,6 @@ void s21_make_string_width(s21_FORMAT *parameters, char *str) {
   int local_width = 0;
   local_width = parameters->width;
 
-  // if (str[0] == '-' && parameters->flag_zero) {
-  //   minus = 1;
-  //   s21_move_string_left(str);
-  //   parameters->width += 1;
-  // }
   if (parameters->width > pos_str) {
     if ((((str[0] == '-') || (str[0] == '+') || str[0] == ' ') &&
          (parameters->flag_zero) && ((parameters->specifier != 'c'))) ||
@@ -858,80 +674,6 @@ void s21_spec_di(char *str, va_list *input, s21_FORMAT *parameters) {
   s21_make_string_width(parameters, str);
 }
 
-// /* Научная нотация (мантисса/экспонента) с использованием символа e/E (вывод
-//  * чисел должен совпадать с точностью до e-6) */
-// void s21_spec_eE(char *str, va_list *input, s21_FORMAT *parameters) {
-//   long double l_number = 0;
-//   double number = 0;
-//   switch (parameters->length) {
-//     case 'L':
-//       l_number = va_arg(*input, long double);
-//       s21_eE_to_str(str, l_number, parameters);
-//       break;
-//     default:
-//       number = va_arg(*input, double);
-//       s21_eE_to_str(str, number, parameters);
-//       break;
-//   }
-//   s21_make_string_precision(parameters, str);
-//   s21_make_string_flags(parameters, str);
-//   s21_make_string_width(parameters, str);
-// }
-
-// void s21_spec_f(char *str, va_list *input, s21_FORMAT *parameters) {
-//   long double l_number = 0;
-//   double d_number = 0;
-
-//   switch (parameters->length) {
-//     case 'L':
-//       l_number = va_arg(*input, long double);
-//       s21_float_to_str(str, l_number, parameters);
-//       break;
-//     case 'l':
-//     default:
-//       d_number = va_arg(*input, double);
-//       s21_float_to_str(str, d_number, parameters);
-//       break;
-//   }
-//   s21_make_string_flags(parameters, str);
-//   s21_make_string_width(parameters, str);
-// }
-
-// /* Использует кратчайший из представлений десятичного числа */
-// void s21_spec_gG(char *str, va_list *input, s21_FORMAT *parameters) {
-//   long double l_number = 0;
-//   long double inf_number = 0;
-//   double number = 0;
-//   // long double arg = 0;
-//   // long double mantissa = arg;  // значение мантиссы аргумента
-//   // int n = 0;  // порядок степени аргумента в экспоненциальной нотации
-//   // int f_exp =
-//   //     (n < -4 || n >= parameters->precision);  // признак эксп. нотации
-//   для
-//   //     "gG"
-//   // if (0 == arg || (1 <= arg && arg <= 9)) f_exp = 0;
-
-//   inf_number = va_arg(*input, long double);
-//   if (inf_number != INFINITY) {
-//     switch (parameters->length) {
-//       case 'L':
-//         l_number = va_arg(*input, long double);
-//         // s21_gG_to_str(str, l_number, parameters);
-//         s21_gG_to_str(str, l_number, parameters);
-//         break;
-//       case 'l':
-//       default:
-//         number = va_arg(*input, double);
-//         s21_gG_to_str(str, number, parameters);
-//         break;
-//     }
-//   } else
-//     s21_strcat(str, "inf");
-//   s21_make_string_precision(parameters, str);
-//   s21_make_string_flags(parameters, str);
-//   s21_make_string_width(parameters, str);
-// }
-
 /* Беззнаковое восьмеричное число */
 void s21_spec_o(char *str, va_list *input, s21_FORMAT *parameters) {
   unsigned long int ld_number = 0;
@@ -956,20 +698,6 @@ void s21_spec_o(char *str, va_list *input, s21_FORMAT *parameters) {
   s21_make_string_flags(parameters, str);
   s21_make_string_width(parameters, str);
 }
-
-// /* Строка символов */
-// void s21_spec_s(char *str, va_list *input, s21_FORMAT *parameters) {
-//   char *string = s21_NULL;
-//   // parameters->precision = INT_MAX;
-//   string = va_arg(*input, char *);
-//   if (parameters->precision > -1)
-//     s21_strncat(str, string, parameters->precision);
-//   else
-//     s21_strcat(str, string);
-//   s21_make_string_precision(parameters, str);
-//   s21_make_string_flags(parameters, str);
-//   s21_make_string_width(parameters, str);
-// }
 
 char *s22str_to_str(va_list *args, char *str, s21_FORMAT *cs) {
   // строковое значение аргумента ограничить точностью
@@ -1100,8 +828,3 @@ int main(int argc, char const *argv[]) {
   return 0;
 }
 #endif
-
-//*1 Test  Test  Test  Test c* man === *=       inf=* = 12=
-// s21 === *test: -9223372036854775807.0!  test: -9223372036854775807.00!  test:
-// -9223372036854775807.000!* = 92= man === *test: -9325781235683690496.0! test:
-// -9325781235683690496.00!  test: -9325781235683690496.000!* = 92=
