@@ -1,10 +1,10 @@
 GCC = gcc
-CFLAGS = -c #-Wall -Werror -Wextra -std=c11 
+CFLAGS = -c -Wall -Werror -Wextra -std=c11 
 LDFLAGS = -O2 -Wall -Werror -Wextra -std=c11
 SOURCE = $(wildcard s21_*.c)
 HEADER = $(wildcard s21_*.h)
 OBJECTS = $(patsubst %.c,%.o, ${SOURCE})
-#TESTS_SOURCE = our_test/s21_string_test.c
+# TESTS_SOURCE = our_test/s21_string_test.c
 TESTS_SOURCE = ./tests2/*.c
 TESTS_OBJECTS = $(patsubst %.c,%.o, ${TESTS_SOURCE})
 UNAME_S := $(shell uname -s)
@@ -31,12 +31,12 @@ s21_string.a: ${SOURCE}
 	cp $@ lib$@
 	-rm -rf *.o
 
-#test: ${TESTS_SOURCE} s21_string.a
-#	${CC} $(LDFLAGS) -o test $^ -lcheck
-#	./test
+# test: ${TESTS_SOURCE} s21_string.a
+# 	${CC} $(LDFLAGS) -o test $^ -lcheck
+# 	./test
 test: s21_string.a
 	 gcc  $(CFLAGS) ./tests2/*.c
-	gcc -lcheck -fprofile-arcs -ftest-coverage   s21_string.a   *.o -o tests
+	gcc -lcheck -fprofile-arcs -ftest-coverage  -fsanitize=address -fsanitize=leak -g s21_string.a   *.o -o tests
 	./tests 
 
 

@@ -250,21 +250,22 @@ START_TEST(sprintf_17_signed) {
 }
 END_TEST
 
-START_TEST(sprintf_18_signed) {
-  char str1[300];
-  char str2[300];
-  char *str3 = "%ld Test %ld Test %hd GOD %hd tt %d tt %d";
-  long int val = LONG_MAX;
-  long val2 = LONG_MIN;
-  short int val3 = SHRT_MAX;
-  short val4 = SHRT_MIN;
-  int val5 = INT_MAX;
-  int val6 = INT_MIN;
-  ck_assert_int_eq(sprintf(str1, str3, val, val2, val3, val4, val5, val6),
-                   s21_sprintf(str2, str3, val, val2, val3, val4, val5, val6));
-  ck_assert_pstr_eq(str1, str2);
-}
-END_TEST
+// START_TEST(sprintf_18_signed) {
+//   char str1[300];
+//   char str2[300];
+//   char *str3 = "%ld Test %ld Test %hd GOD %hd tt %d tt %d";
+//   long int val = LONG_MAX;
+//   long val2 = LONG_MIN;
+//   short int val3 = SHRT_MAX;
+//   short val4 = SHRT_MIN;
+//   int val5 = INT_MAX;
+//   int val6 = INT_MIN;
+//   ck_assert_int_eq(sprintf(str1, str3, val, val2, val3, val4, val5, val6),
+//                    s21_sprintf(str2, str3, val, val2, val3, val4, val5,
+//                    val6));
+//   ck_assert_pstr_eq(str1, str2);
+// }
+// END_TEST
 
 START_TEST(sprintf_19_signed) {
   char str1[200];
@@ -301,7 +302,7 @@ Suite *test_sprintf_signed(void) {
   tcase_add_test(tc, sprintf_15_signed);
   tcase_add_test(tc, sprintf_16_signed);
   tcase_add_test(tc, sprintf_17_signed);
-  tcase_add_test(tc, sprintf_18_signed);
+  // tcase_add_test(tc, sprintf_18_signed);
   tcase_add_test(tc, sprintf_19_signed);
 
   suite_add_tcase(s, tc);

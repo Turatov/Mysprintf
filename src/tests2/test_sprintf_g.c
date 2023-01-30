@@ -535,16 +535,16 @@ Suite *test_sprintf_g(void) {
   tcase_add_test(tc, sprintf_33_g);
   tcase_add_test(tc, sprintf_34_g);
   tcase_add_test(tc, sprintf_35_g);
-  // tcase_add_test(tc, sprintf_36_g); test test 0
-  // tcase_add_test(tc, sprintf_37_g);  // test 0
+  tcase_add_test(tc, sprintf_36_g);  // test test 0 21
+  tcase_add_test(tc, sprintf_37_g);  // test 021
   tcase_add_test(tc, sprintf_38_g);
   tcase_add_test(tc, sprintf_39_g);
   tcase_add_test(tc, sprintf_40_g);
   tcase_add_test(tc, sprintf_41_g);
   tcase_add_test(tc, sprintf_42_g);
   tcase_add_test(tc, sprintf_43_g);
-  // tcase_add_test(tc, sprintf_44_g); // test infinity
-  // tcase_add_test(tc, sprintf_45_g);  // test NAN
+  tcase_add_test(tc, sprintf_44_g);  // test infinity  21
+  tcase_add_test(tc, sprintf_45_g);  // test NAN 21
 
   suite_add_tcase(s, tc);
   return s;
