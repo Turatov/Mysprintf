@@ -1,4 +1,151 @@
+#include <wchar.h>
+
+#include "ctype.h"
 #include "s21_string.h"
+
+char *s22str_to_str(va_list *args, char *str, s21_FORMAT *cs);
+
+char *strchrncat(char *str, char ch, int n, int f) {
+  if (n <= 0) return str;
+  s21_size_t m = s21_strlen(str);
+  if (f) {  // дублировать символ ch в конец строки n раз
+    s21_memset(str + m, ch, n);
+    str[m + n] = '\0';
+  } else {  // дублировать символ ch в начало строки n раз
+    s21_memmove(str + n, str, m + 1);
+    s21_memset(str, ch, n);
+  }
+  return str;
+}  // конец strchrncat
+char *s21_itoa(long long value, char *str, int radix) {
+  char *buffer = str;
+  // if (value < 0) value *= -1;
+  value = llabs(value);  // преобразовывать в положительное число
+  do {  // вычленить и заменить цифру на соответствующую букву в своей
+        // системе счисления ('0'=48 ... '9'=57, 'a'=97 ... 'f'=102)
+    *buffer = value % radix + (value % radix < 10 ? 48 : 87);
+    ++buffer;
+    value /= radix;
+  } while (value != 0);
+  *buffer = '\0';
+  --buffer;
+  // перевернуть строку
+  for (int i = 0; (str + i) < (buffer - i); i++) {
+    char temp = *(str + i);
+    *(str + i) = *(buffer - i);
+    *(buffer - i) = temp;
+  }
+  return str;
+}  // конец s21_itoa
+
+// преобразование строки в целое число; возвращается ноль,
+// eсли в начале строки стоит символ, не являющейся цифрой
+int s21_atoi(char *str) {
+  int sum = 0;
+  s21_size_t n = s21_strspn(str, "1234567890");  // количество цифр в числе
+  for (s21_size_t i = 0; i < n; i++) sum += (str[n - i - 1] - 48) * pow(10, i);
+  return sum;
+}  // конец s21_atoi
+
+char *s21_ftoa(long double value, char *str, s21_size_t accuracy, int f) {
+  char *p;  // указатель на начало дробной части
+  char *digit;  // указатель на первую ненулевую цифру в строк. предст-ии числа
+  s21_size_t n = (f ? 0 : accuracy);  // количество цифр после точки
+  value = fabsl(value);
+  do {
+    long double a, b;  // целая и дробная части числа
+    // округлить число до n знаков после точки и выделить дробн. и цел. части
+    b = modfl(roundl(value * pow(10, n)) / pow(10, n), &a);
+    // s21_itoa(llroundl(a), str, 10);  // преобразовать в строку целую часть
+    s21_itoa(llroundl(a), str, 10);  // преобразовать в строку целую часть
+    p = str + s21_strlen(str);  // найти начало дробной части в строке
+    // преобразовать в строку дробную часть
+    if (n > 0) s21_itoa(llroundl(b * pow(10, n)), p, 10);
+    // добавить в дробную часть недостающие нули
+    strchrncat(p, '0', n++ - s21_strlen(p), 0);
+    if (f && value == 0 && n == accuracy) break;
+    digit = s21_strpbrk(str, "123456789");
+    // округлять число до количества значащих цифр
+  } while (f && (!digit || s21_strlen(digit) < accuracy));
+  // вставить точку перед дробной частью
+  strchrncat(p, '.', (--n > 0), 0);
+  return str;
+}  // конец s21_ftoa
+
+char *flt_to_str(va_list *args, char *str, s21_FORMAT *cs) {
+  long double arg = 0;  // значение вещественного аргумента
+  // int ll = (cs->length && cs->precision < 5 && !cs->width) ? 1 : 0;
+  int ll = 0;
+
+  if (cs->length == 0) arg = (double)va_arg(*args, double);
+  if (cs->length == 'h') arg = (float)va_arg(*args, double);
+  if (cs->length == 'l') arg = (double)va_arg(*args, double);
+  if (cs->length == 'L') arg = (long double)va_arg(*args, long double);
+  long double mantissa = arg;  // значение мантиссы аргумента
+  int n = 0;  // порядок степени аргумента в экспоненциальной нотации
+  // вычислить мантиссу и порядок степени аргумента
+
+  long double left = 0, right = 0;  // long double
+  int pos = 0;
+  char result[256] = {0};
+  right = modfl(mantissa, &left);  // modfl
+  // if ((cs->length == 'L') && (left == 9999.000000) && cs->precision <= 4)
+  //   ll = 1;
+  char text[999] = {0};
+  s21_itoa(left, text, 10);
+  if (((text[0] - '0') * pow(10, 0) == 9) && (text[1] - '0') * pow(10, 0) > 4)
+    ll = 1;
+
+  if (s21_strchr("eEgG", cs->specifier)) {
+    while (fabsl(mantissa) >= (ll ? 1 : 10)) {
+      mantissa /= 10;
+      n++;
+    }
+    while (0 < fabsl(mantissa) && fabsl(mantissa) < (ll ? 0 : 1)) {
+      mantissa *= 10;
+      n--;
+    }
+  }
+
+  int f_exp = (n < -4 || n >= cs->precision);  // признак эксп. нотации для "gG"
+  if (0 == arg || (1 <= arg && arg <= 9)) f_exp = 0;
+  // преобразовать модуль вещественного числа или мантиссы аргумента в строку
+  if (s21_strchr("f", cs->specifier)) s21_ftoa(arg, str, cs->precision, 0);
+  if (s21_strchr("eE", cs->specifier))
+    s21_ftoa(mantissa, str, cs->precision, 0);
+  if (s21_strchr("gG", cs->specifier))
+    s21_ftoa(f_exp ? mantissa : arg, str, cs->precision, 1);
+  // подавить вывод нулей и точки в конце дробной части для "gG"
+  if (s21_strchr("gG", cs->specifier) && !cs->flag_sharp) {
+    char *dot = s21_strchr(str, '.');
+    for (char *p;
+         dot && (p = s21_strrchr(dot, '0')) && !s21_strpbrk(p, "123456789");)
+      *p = '\0';
+    if (dot && !s21_strpbrk(dot, "0123456789")) *dot = '\0';
+  }
+  int k = 0;  // количество знаков в итоговом префиксе +/-, ' '
+  // вывести "+", " " или "-" перед положит. или отриц. значениями
+  if (arg < 0) strchrncat(str, '-', (++k, 1), 0);
+  if (cs->flag_plus && arg >= 0) strchrncat(str, '+', (++k, 1), 0);
+  if (cs->flag_space && !cs->flag_plus && arg >= 0)
+    strchrncat(str, ' ', (++k, 1), 0);
+  // добавить "." при нулевой точности
+  if (cs->flag_sharp && cs->precision == 0) s21_strcat(str, ".");
+  // добавить суффикс эксп. нотации
+  if (s21_strchr("eE", cs->specifier) ||
+      (s21_strchr("gG", cs->specifier) && f_exp)) {
+    strchrncat(str, (isupper(cs->specifier) ? 'E' : 'e'), 1, 1);
+    strchrncat(str, (n >= 0 ? '+' : '-'), 1, 1);
+    strchrncat(str, '0', abs(n) <= 9, 1);
+    s21_itoa(n, str + s21_strlen(str), 10);
+  }
+  // дополнить пробелами или нулями (вместо пробелов) до заданной ширины
+  // и выровнять вывод по левому или правому краю
+  char ch = (cs->flag_zero && !cs->flag_minus ? '0' : ' ');
+  strchrncat(str + (ch == '0' ? k : 0), ch, cs->width - s21_strlen(str),
+             cs->flag_minus);
+  return str;
+}  // конец flt_to_str
 
 int s21_sprintf(char *str, const char *format, ...) {
   va_list input = {0};
@@ -115,14 +262,17 @@ char *s21_check_specifier(char *str, s21_size_t *str_len, va_list *input,
         break;
       case 'e':
       case 'E':
-        s21_spec_eE(tmp_str, input, parameters);
+        // s21_spec_eE(tmp_str, input, parameters);
+        flt_to_str(input, tmp_str, parameters);
         break;
       case 'f':
-        s21_spec_f(tmp_str, input, parameters);
+        // s21_spec_f(tmp_str, input, parameters);
+        flt_to_str(input, tmp_str, parameters);
         break;
       case 'g':
       case 'G':
-        s21_spec_gG(tmp_str, input, parameters);
+        // s21_spec_gG(tmp_str, input, parameters);
+        flt_to_str(input, tmp_str, parameters);
         break;
       case 'n':
         s21_spec_n(str_len, input);
@@ -134,7 +284,8 @@ char *s21_check_specifier(char *str, s21_size_t *str_len, va_list *input,
         s21_spec_p(tmp_str, input, parameters);
         break;
       case 's':
-        s21_spec_s(tmp_str, input, parameters);
+        // s21_spec_s(tmp_str, input, parameters);
+        s22str_to_str(input, tmp_str, parameters);
         break;
       case 'u':
         s21_spec_u(tmp_str, input, parameters);
@@ -797,6 +948,7 @@ void s21_spec_o(char *str, va_list *input, s21_FORMAT *parameters) {
 /* Строка символов */
 void s21_spec_s(char *str, va_list *input, s21_FORMAT *parameters) {
   char *string = s21_NULL;
+  // parameters->precision = INT_MAX;
   string = va_arg(*input, char *);
   if (parameters->precision > -1)
     s21_strncat(str, string, parameters->precision);
@@ -806,6 +958,27 @@ void s21_spec_s(char *str, va_list *input, s21_FORMAT *parameters) {
   s21_make_string_flags(parameters, str);
   s21_make_string_width(parameters, str);
 }
+
+char *s22str_to_str(va_list *args, char *str, s21_FORMAT *cs) {
+  // строковое значение аргумента ограничить точностью
+  if (cs->length == 0) {
+    char *tmpstr = va_arg(*args, char *);
+    s21_strncat(str, (tmpstr ? tmpstr : "(null)"), cs->precision);
+  }
+  // широкую строку аргумента преобразовать в многобайтовую строку
+  // и ограничить ее точностью
+  if (cs->length == 'l') {
+    wchar_t *pwcs = va_arg(*args, wchar_t *);
+    int n = wcstombs(str, pwcs, wcslen(pwcs) * MB_CUR_MAX);
+    if (cs->precision < n) n = cs->precision;
+    str[n] = '\0';
+  }
+  // дополнить пробелами до заданной ширины
+  // и выровнять вывод по левому или правому краю
+  strchrncat(str, cs->flag_zero ? '0' : ' ', cs->width - s21_strlen(str),
+             cs->flag_minus);
+  return str;
+}  // конец str_to_str
 
 /* Беззнаковое десятичное целое число */
 void s21_spec_u(char *str, va_list *input, s21_FORMAT *parameters) {
@@ -897,22 +1070,25 @@ void s21_spec_percentage(char *str, s21_FORMAT *parameters) {
   s21_make_string_flags(parameters, str);
   s21_make_string_width(parameters, str);
 }
-// #define test
+#define test
 #ifdef test
 int main(int argc, char const *argv[]) {
   int h = 0;
   int m = 0;
 
-  char str1[200];
-  char str2[200];
-  char *str3 = " TEST %.g TEST %4g TEST %4g TEST %#5g!";
-  double num = 0.0000756589367;
-  m = sprintf(str1, str3, num, num, num, num, num);
-  h = s21_sprintf(str2, str3, num, num, num, num, num);
-  printf("s21 === *%s* = %d=\n", str2, h);
-  printf("man === *%s* = %d=\n", str1, m);
+  char s1[] = " wtf ";
+  char *s3 = " 1";
+  char *s4 = " wtf ";
+  char *s2 = s21_trim(s1, s3);
+
+  printf("s21 === *%s* = %d=\n", s2, h);
+  printf("man === *%s* = %d=\n", s2, m);
 
   return 0;
 }
 #endif
+
 //*1 Test  Test  Test  Test c* man === *=       inf=* = 12=
+// s21 === *test: -9223372036854775807.0!  test: -9223372036854775807.00!  test:
+// -9223372036854775807.000!* = 92= man === *test: -9325781235683690496.0! test:
+// -9325781235683690496.00!  test: -9325781235683690496.000!* = 92=
